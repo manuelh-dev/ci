@@ -21,33 +21,39 @@ def run_scope() -> Generator[None, None, None]:
 
 
 @contextmanager
-def batch_scope(*extra: ContextFactory) -> Generator[None, None, None]:
-    """Restore common batch state and contexts declared by this batch."""
+def batch_scope(
+    *extra: ContextFactory, restore_state: bool = True
+) -> Generator[None, None, None]:
+    """Optionally restore common IPE state; always restore explicit scopes."""
     with ExitStack() as stack:
-        stack.enter_context(
-            setting(read=ipe.enforcement, write=ipe.set_enforcement)
-        )
+        if restore_state:
+            stack.enter_context(
+                setting(read=ipe.enforcement, write=ipe.set_enforcement)
+            )
         for make_context in extra:
             stack.enter_context(make_context())
         yield
 
 
 @contextmanager
-def case_scope(*extra: ContextFactory) -> Generator[None, None, None]:
-    """Restore common case state and contexts declared by this case."""
+def case_scope(
+    *extra: ContextFactory, restore_state: bool = True
+) -> Generator[None, None, None]:
+    """Optionally restore common IPE state; always restore explicit scopes."""
     with ExitStack() as stack:
-        stack.enter_context(
-            collection(members=ipe.test_policy_names, discard=ipe.delete_policy)
-        )
-        stack.enter_context(
-            setting(read=ipe.active_policy, write=ipe.activate_policy)
-        )
-        stack.enter_context(
-            setting(read=ipe.enforcement, write=ipe.set_enforcement)
-        )
-        stack.enter_context(
-            setting(read=ipe.success_audit, write=ipe.set_success_audit)
-        )
+        if restore_state:
+            stack.enter_context(
+                collection(members=ipe.test_policy_names, discard=ipe.delete_policy)
+            )
+            stack.enter_context(
+                setting(read=ipe.active_policy, write=ipe.activate_policy)
+            )
+            stack.enter_context(
+                setting(read=ipe.enforcement, write=ipe.set_enforcement)
+            )
+            stack.enter_context(
+                setting(read=ipe.success_audit, write=ipe.set_success_audit)
+            )
         for make_context in extra:
             stack.enter_context(make_context())
         yield

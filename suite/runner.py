@@ -86,10 +86,10 @@ def run_in_child(case: Case) -> dict:
     return json.loads(payload)
 
 
-def test(case: Case) -> tuple[str, str] | None:
-    """Run one case, check its result, and restore its tracked state."""
+def test(case: Case, *, restore_state: bool = True) -> tuple[str, str] | None:
+    """Run and check one case, restoring common IPE state unless terminal."""
     try:
-        with runtime.case_scope(*case.extra_scopes):
+        with runtime.case_scope(*case.extra_scopes, restore_state=restore_state):
             result = run_in_child(case)
             if result["error"]:
                 return "error", result["error"]
@@ -119,17 +119,23 @@ def run(output: TextIO) -> int:
     emit("TAP version 13")
 
     number = 0
-    with runtime.run_scope():
+    with ExitStack() as run_resources:
+        run_resources.enter_context(runtime.run_scope())
         ipe.deploy_policy(BASELINE_POLICY.signed)
         ipe.activate_policy(BASELINE_POLICY.name)
         for batch in batches:
+            if batch.terminal:
+                # Irreversible cases must not prevent ordinary suite cleanup.
+                run_resources.close()
             try:
-                with runtime.batch_scope(*batch.extra_scopes):
+                with runtime.batch_scope(
+                    *batch.extra_scopes, restore_state=not batch.terminal
+                ):
                     for step in batch.setup:
                         step()
                     for case in batch.cases:
                         number += 1
-                        outcome = test(case)
+                        outcome = test(case, restore_state=not batch.terminal)
 
                         if outcome is None:
                             emit(f"ok {number} {case.id}")

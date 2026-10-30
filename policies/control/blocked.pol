@@ -1,0 +1,9 @@
+policy_name=ipe_test_control_blocked policy_version=0.0.1
+DEFAULT action=DENY
+op=EXECUTE action=ALLOW
+op=FIRMWARE action=ALLOW
+op=KMODULE action=ALLOW
+op=KEXEC_IMAGE action=ALLOW
+op=KEXEC_INITRAMFS action=ALLOW
+op=POLICY action=ALLOW
+op=X509_CERT action=ALLOW

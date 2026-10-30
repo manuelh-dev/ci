@@ -21,6 +21,11 @@ def set_enforcement(enabled: bool, state: CaseState) -> None:
     ipe.set_enforcement(enabled)
 
 
+def set_success_audit(enabled: bool, state: CaseState) -> None:
+    """Set successful-decision auditing as one case setup step."""
+    ipe.set_success_audit(enabled)
+
+
 def open_node(
     entry: str,
     policy: ipe.Policy | None,

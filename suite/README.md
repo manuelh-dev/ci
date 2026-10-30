@@ -23,3 +23,17 @@ copy of the memfd implementation.
 Imports and case order are explicit. There is no plugin discovery or generated
 runtime registry. Keep errno, program exit status and resulting state separate;
 process exit releases process-local memory, not global kernel resources.
+
+Terminal batches run last, after the runner restores ordinary suite state.
+They retain the same child execution, checks and TAP reporting, but do not
+restore common IPE state between cases or at batch exit. Explicit resource
+scopes still run. Use this only for irreversible changes, such as a final
+policy that denies further control-plane changes; the disposable guest is
+powered off afterwards. Ordinary batches cannot follow a terminal batch.
+
+The `control_operations` terminal batch signs its fixtures with the existing
+builtin test identity at build time. It first exercises compatibility and
+selective denials, then installs a policy denying all eight control operations.
+The final case checks rejected mutations and successful no-op writes. This
+sequence requires a fresh guest boot. It does not cover initial loading with
+no active policy: this image starts with a built-in boot policy.

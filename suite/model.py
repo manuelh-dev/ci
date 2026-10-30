@@ -47,3 +47,5 @@ class Batch:
     cases: tuple[Case, ...]
     setup: tuple[Callable, ...] = ()
     extra_scopes: tuple[ContextFactory, ...] = ()
+    # Run after ordinary cleanup without restoring common IPE state.
+    terminal: bool = False

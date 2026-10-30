@@ -195,6 +195,7 @@ def main() -> int:
                 *policies_in(
                     "boot",
                     "capability",
+                    "control",
                     "dmverity",
                     "fsverity",
                     "policy",
